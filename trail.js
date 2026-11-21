@@ -58,9 +58,9 @@ track.setAttribute('aria-label','Снаряжение для треккинга'
 const items = [...track.children];
 const controls = document.createElement('div');
 controls.className='trek-nav';
-controls.innerHTML='<span></span><button aria-label="Предыдущее снаряжение" aria-controls="trek-items">‹</button><button aria-label="Следующее снаряжение" aria-controls="trek-items">›</button>';
+const range = document.createElement('span');
+controls.append(range);
 track.before(controls);
-const [previous,next] = controls.querySelectorAll('button');
 function indexAtEdge() {
   const left = track.getBoundingClientRect().left + 2;
   return items.reduce((best,item,i) => Math.abs(item.getBoundingClientRect().left-left) < Math.abs(items[best].getBoundingClientRect().left-left) ? i : best,0);
@@ -71,16 +71,42 @@ function updateControls() {
   const first = indexAtEdge();
   let last = first;
   while (last+1 < items.length && items[last+1].getBoundingClientRect().right <= end+2) last++;
-  controls.firstElementChild.textContent=(first+1)+(last>first?'–'+(last+1):'')+' / '+items.length;
-  previous.disabled = track.scrollLeft < 2;
-  next.disabled = track.scrollWidth-track.clientWidth-track.scrollLeft < 3;
+  range.textContent=(first+1)+(last>first?'–'+(last+1):'')+' / '+items.length;
 }
 function move(step) {
   const item = items[Math.max(0,Math.min(items.length-1,indexAtEdge()+step))];
   track.scrollTo({left:item.offsetLeft-items[0].offsetLeft,behavior:reduced.matches?'instant':'smooth'});
 }
-previous.onclick=()=>move(-1);
-next.onclick=()=>move(1);
+let requestedLeft = null;
+let lastNotch = 0;
+function resetWheel() { requestedLeft = null; }
+track.addEventListener('pointerdown', resetWheel, {passive:true});
+track.addEventListener('keydown', resetWheel);
+track.addEventListener('wheel', event => {
+  const dy = event.deltaY;
+  if (!event.cancelable || event.ctrlKey || event.shiftKey || !dy ||
+      Math.abs(event.deltaX) >= Math.abs(dy)) {
+    resetWheel();
+    return;
+  }
+  const max = track.scrollWidth - track.clientWidth;
+  if (max < 1 || (dy < 0 && track.scrollLeft <= 2) ||
+      (dy > 0 && track.scrollLeft >= max - 2)) {
+    resetWheel();
+    return;
+  }
+  event.preventDefault();
+  track.classList.add('wheel-scroll');
+  const notch = event.deltaMode !== 0 || (Number.isInteger(dy) && Math.abs(dy) >= 90);
+  const now = performance.now();
+  const start = notch && requestedLeft !== null && now-lastNotch < 200
+    ? requestedLeft : track.scrollLeft;
+  const unit = event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? track.clientWidth : 1;
+  requestedLeft = Math.min(max, Math.max(0, start + dy * unit));
+  lastNotch = now;
+  track.scrollTo({left:requestedLeft,behavior:notch && !reduced.matches ? 'smooth' : 'instant'});
+}, {passive:false});
+track.addEventListener('touchstart', () => track.classList.remove('wheel-scroll'), {passive:true});
 track.addEventListener('keydown', e=>{
   if(e.target!==track || !['ArrowLeft','ArrowRight'].includes(e.key)) return;
   e.preventDefault();move(e.key==='ArrowLeft'?-1:1);
@@ -103,7 +129,7 @@ updateControls();
       (delta % 100 === 0 || delta % 120 === 0));
     if (!notch || !delta || event.defaultPrevented || !event.cancelable || reduced.matches ||
         event.ctrlKey || event.shiftKey || event.deltaX || document.querySelector('dialog[open]') ||
-        event.target.closest?.('select,textarea,nav,#trek-items')) {
+        event.target.closest?.('select,textarea,nav')) {
       reset();
       return;
     }
