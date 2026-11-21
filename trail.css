@@ -20,6 +20,6 @@ section.trust.pinned{height:calc(100svh + 190svh);padding:0}
 .pinned .perks img{width:clamp(20px,3.5vh,34px);height:clamp(20px,3.5vh,34px)}
 .pinned .perks article.arrived,.pinned h2.arrived{animation:none}
 @media(max-width:640px){.trust.pinned>.wrap{display:flex;flex-direction:column;justify-content:center;gap:8px}.pinned .trust-heading h2{align-self:start;margin:0}.pinned .trust-crystal{flex:none;width:min(50vw,22svh)}.pinned .perks article{font-size:.94rem;padding:5px 0}.pinned .perks img{height:23px;width:23px}}
-#trekking[open]>.cards{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:clamp(230px,25vw,355px);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;gap:clamp(12px,1.6vw,24px);padding:4px 2px 18px;scrollbar-width:thin;scrollbar-color:#829581 transparent}
-#trekking .kit{scroll-snap-align:start}.trek-nav{display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 2px 14px;font:500 15px Arial,sans-serif;font-variant-numeric:tabular-nums}#trekking[open]>.cards.wheel-scroll{scroll-snap-type:none}
-@media(max-width:640px){#trekking[open]>.cards{grid-auto-columns:min(80vw,320px)}}
+#uslugi .category[open]>.cards{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:clamp(230px,25vw,355px);overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;gap:clamp(12px,1.6vw,24px);padding:4px 2px 18px;scrollbar-width:thin;scrollbar-color:#829581 transparent}
+#uslugi .category .kit{scroll-snap-align:start}#uslugi .category[open]>.cards.wheel-scroll{scroll-snap-type:none}
+@media(max-width:640px){#uslugi .category[open]>.cards{grid-auto-columns:min(80vw,320px)}}
