@@ -1,6 +1,7 @@
 const trust = document.querySelector('#o-nas');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-const icons = [...trust.querySelectorAll('.trust-crystal svg')];
+const crystal = trust.querySelector('.trust-crystal');
+const photos = [...crystal.querySelectorAll('.crystal-shot')];
 const benefits = [...trust.querySelectorAll('.perks article')];
 const clamp = n => Math.min(1, Math.max(0,n));
 let scheduled = false;
@@ -15,11 +16,18 @@ function drawTrust() {
   trust.style.setProperty('--title-alpha', intro);
   trust.style.setProperty('--title-rise', ((1-intro)*38)+'px');
   trust.style.setProperty('--grow', .64 + .36 * clamp(progress * 3 + intro * .2));
-  trust.style.setProperty('--veil', clamp(progress * 15));
-  const active = Math.min(5,Math.floor(progress * 6));
-  benefits.forEach((node,i) => {
-    node.classList.toggle('current',active === i);
-    icons[i].classList.toggle('current',active === i);
+  // Each photograph holds for a beat. A diagonal wipe follows the scroll
+  // position in either direction, clipped by the original crystal silhouette.
+  const phase = progress * photos.length;
+  const base = Math.min(photos.length - 1, Math.max(0, Math.floor(phase - .25)));
+  const reveal = base === photos.length - 1 ? 0 : clamp((phase - base - .75) / .5);
+  const incoming = base < photos.length - 1 && reveal > 0 ? base + 1 : -1;
+  const active = reveal >= .5 ? incoming : base;
+  crystal.style.setProperty('--edge', (126 * reveal).toFixed(2) + '%');
+  photos.forEach((photo, i) => {
+    photo.classList.toggle('is-base', i === base);
+    photo.classList.toggle('is-incoming', i === incoming);
+    benefits[i].classList.toggle('current', i === active);
   });
 }
 function sizeTrust() {
@@ -34,6 +42,12 @@ window.addEventListener('scroll', () => {
 window.addEventListener('resize',sizeTrust);
 reduced.addEventListener('change',sizeTrust);
 sizeTrust();
+const photoLoader = new IntersectionObserver(entries => {
+  if (!entries.some(entry => entry.isIntersecting)) return;
+  photos.forEach(photo => { photo.loading = 'eager'; });
+  photoLoader.disconnect();
+}, {rootMargin:'100% 0px'});
+photoLoader.observe(trust);
 
 const trekking = document.querySelector('#trekking');
 const track = trekking.querySelector('.cards');
